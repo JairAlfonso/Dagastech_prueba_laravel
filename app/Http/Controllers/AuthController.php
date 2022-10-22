@@ -17,7 +17,7 @@ class AuthController extends Controller
      */
     public function __construct()
     {
-        $this->middleware('auth:api', ['except' => ['login', 'register']]);
+        $this->middleware('auth:api', ['except' => ['login', 'register', 'me']]);
     }
 
     /**
@@ -27,8 +27,16 @@ class AuthController extends Controller
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function login()
+    public function login(Request $request)
     {
+        $validator = \Validator::make($request->all(),[
+            'email' => 'required|email',
+            'password' => 'required '
+        ]);
+        if($validator->fails()){
+            return response()->json($validator->errors(),400);
+        }
+
         $credentials = request(['email', 'password']);
 
         if (!$token = auth()->attempt($credentials)) {
@@ -67,7 +75,7 @@ class AuthController extends Controller
      */
     public function refresh()
     {
-        return $this->respondWithToken(auth()->refresh);
+        return $this->respondWithToken(auth()->refresh());
     }
 
     /**
