@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ProjectResource;
 use App\Models\Project;
+use Dotenv\Validator;
 use Illuminate\Http\Request;
 
 class ProjectController extends Controller
@@ -89,7 +90,19 @@ class ProjectController extends Controller
      */
     public function update(Request $request, Project $project)
     {
-        //
+        $validator = \Validator::make($request->all(),[
+            'name' => 'required|min:5',
+            'desciption' => 'string|min:8'
+        ]);
+
+        if($validator->fails()){
+            return response()->json($validator->errors(),400);
+        }
+
+        $project->fill($request->all());
+        $project->save();
+
+        return response()->json(['status'=> 200, 'message' => 'update project!']);
     }
 
     /**
@@ -100,6 +113,8 @@ class ProjectController extends Controller
      */
     public function destroy(Project $project)
     {
-        //
+        $project->delete();
+
+        return response()->json(['status' => 'delete project']);
     }
 }
