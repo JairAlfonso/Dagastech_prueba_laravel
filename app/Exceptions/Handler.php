@@ -11,6 +11,7 @@ use Illuminate\Routing\Router;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Http\JsonResponse;
 
+
 class Handler extends ExceptionHandler
 {
     /**

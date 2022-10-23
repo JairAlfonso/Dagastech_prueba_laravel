@@ -17,7 +17,8 @@ class ProjectResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
-            'desciption' => $this->desciption //esta mal escrito 'description'
+            'desciption' => $this->desciption, //esta mal escrito 'description'
+            'image' => $this->image,
         ];
     }
 }

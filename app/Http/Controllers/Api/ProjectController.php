@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ProjectResource;
+use Illuminate\Http\Resources\Json\JsonResource;
 use App\Models\Project;
-use Dotenv\Validator;
 use Illuminate\Http\Request;
+
+
 
 class ProjectController extends Controller
 {
@@ -41,22 +43,31 @@ class ProjectController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \Illuminate\Http\Request $request
      * @return \Illuminate\Http\Response
+     *
      */
     public function store(Request $request)
     {
         $validator = \Validator::make($request->all(),[
             'name' => 'required|min:5',
-            'desciption' => 'string|min:8'
+            'desciption' => 'required|string|min:8',
+            'image' => 'required|image|dimensions:min_width=200,min_height=200',
         ]);
 
         if($validator->fails()){
             return response()->json($validator->errors(),400);
         }
 
-        Project::create($request->all());
-        return response()->json(['status' => 201, 'message' => 'save project'],201);
+        $project = new Project($request->all());
+        $path = $request->image->store('projects');
+        $project -> image = $path;
+        $project -> save();
+
+        //Project::create($request->all());
+        return response()->json(['status'=> 201, 'message' => 'save project!']);
+        //return ProjectResource::make($project)->additional(['status' => 200]);
+
     }
 
     /**
@@ -90,13 +101,14 @@ class ProjectController extends Controller
      */
     public function update(Request $request, Project $project)
     {
-        $validator = \Validator::make($request->all(),[
+        $request->validate($request->all(),[
             'name' => 'required|min:5',
-            'desciption' => 'string|min:8'
+            'desciption' => 'string|min:8',
+            //'image' => 'required|image|dimensions:min_width=200,min_height=200',
         ]);
 
-        if($validator->fails()){
-            return response()->json($validator->errors(),400);
+        if($request->fails()){
+            return response()->json($request->errors(),400);
         }
 
         $project->fill($request->all());
