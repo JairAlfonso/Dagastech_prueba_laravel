@@ -7,7 +7,7 @@ use App\Http\Resources\ProjectResource;
 use Illuminate\Http\Resources\Json\JsonResource;
 use App\Models\Project;
 use Illuminate\Http\Request;
-
+use Illuminate\Support\Facades\Storage;
 
 
 class ProjectController extends Controller
@@ -60,13 +60,12 @@ class ProjectController extends Controller
         }
 
         $project = new Project($request->all());
-        $path = $request->image->store('projects');
+        $path = $request->image->store('public/projects');
+        Storage::disk('s3')->put($path, file_get_contents($request->image));
         $project -> image = $path;
         $project -> save();
 
-        //Project::create($request->all());
-        return response()->json(['status'=> 201, 'message' => 'save project!']);
-        //return ProjectResource::make($project)->additional(['status' => 200]);
+        return response()->json(new ProjectResource($project),201);
 
     }
 
@@ -104,7 +103,7 @@ class ProjectController extends Controller
         $request->validate($request->all(),[
             'name' => 'required|min:5',
             'desciption' => 'string|min:8',
-            //'image' => 'required|image|dimensions:min_width=200,min_height=200',
+            'image' => 'required|image|dimensions:min_width=200,min_height=200',
         ]);
 
         if($request->fails()){
@@ -120,12 +119,14 @@ class ProjectController extends Controller
     /**
      * Remove the specified resource from storage.
      *
+     * @param  \Illuminate\Http\Request  $request
      * @param  \App\Models\Project  $project
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Project $project)
+    public function destroy(Request $request, Project $project)
     {
-        $project->delete();
+        $project->delete($project->image);
+        Storage::disk('s3')->delete($project->image);
 
         return response()->json(['status' => 'delete project']);
     }
